@@ -4,6 +4,13 @@ import type { FormEvent } from "react";
 import { useEffect, useState } from "react";
 import { DashboardGrid, DashboardShell } from "../../../components/dashboard-shell";
 import { api } from "../../../lib/api";
+import {
+  buildCandidateProfilePayload,
+  buildCandidateSkillPayload,
+  buildEducationPayload,
+  buildExperiencePayload,
+  buildJobAlertPayload,
+} from "../../../lib/form-payloads";
 
 type JobSummary = {
   id: string;
@@ -34,16 +41,6 @@ type Recommendation = {
   score: number;
   job: JobSummary;
 };
-
-function numberOrUndefined(value: FormDataEntryValue | null) {
-  const text = value?.toString().trim();
-  return text ? Number(text) : undefined;
-}
-
-function textOrUndefined(value: FormDataEntryValue | null) {
-  const text = value?.toString().trim();
-  return text || undefined;
-}
 
 export default function CandidateDashboardPage() {
   const [profile, setProfile] = useState<CandidateProfile | null>(null);
@@ -82,14 +79,7 @@ export default function CandidateDashboardPage() {
     const formData = new FormData(event.currentTarget);
     await runAction("Profile updated.", "/api/v1/candidate/profile", {
       method: "PATCH",
-      body: JSON.stringify({
-        headline: textOrUndefined(formData.get("headline")),
-        currentCity: textOrUndefined(formData.get("currentCity")),
-        preferredCity: textOrUndefined(formData.get("preferredCity")),
-        totalExperience: numberOrUndefined(formData.get("totalExperience")),
-        expectedSalary: numberOrUndefined(formData.get("expectedSalary")),
-        openToRemote: formData.get("openToRemote") === "on",
-      }),
+      body: JSON.stringify(buildCandidateProfilePayload(formData)),
     });
   }
 
@@ -99,7 +89,7 @@ export default function CandidateDashboardPage() {
     const formData = new FormData(form);
     await runAction("Skill added.", "/api/v1/candidate/skills", {
       method: "POST",
-      body: JSON.stringify({ name: textOrUndefined(formData.get("name")), level: numberOrUndefined(formData.get("level")) || 1 }),
+      body: JSON.stringify(buildCandidateSkillPayload(formData)),
     });
     form.reset();
   }
@@ -110,12 +100,7 @@ export default function CandidateDashboardPage() {
     const formData = new FormData(form);
     await runAction("Education added.", "/api/v1/candidate/education", {
       method: "POST",
-      body: JSON.stringify({
-        degree: textOrUndefined(formData.get("degree")),
-        institute: textOrUndefined(formData.get("institute")),
-        startYear: numberOrUndefined(formData.get("startYear")),
-        endYear: numberOrUndefined(formData.get("endYear")),
-      }),
+      body: JSON.stringify(buildEducationPayload(formData)),
     });
     form.reset();
   }
@@ -126,13 +111,7 @@ export default function CandidateDashboardPage() {
     const formData = new FormData(form);
     await runAction("Experience added.", "/api/v1/candidate/experience", {
       method: "POST",
-      body: JSON.stringify({
-        title: textOrUndefined(formData.get("title")),
-        company: textOrUndefined(formData.get("company")),
-        startDate: textOrUndefined(formData.get("startDate")),
-        endDate: textOrUndefined(formData.get("endDate")),
-        description: textOrUndefined(formData.get("description")),
-      }),
+      body: JSON.stringify(buildExperiencePayload(formData)),
     });
     form.reset();
   }
@@ -143,14 +122,7 @@ export default function CandidateDashboardPage() {
     const formData = new FormData(form);
     await runAction("Job alert created.", "/api/v1/candidate/alerts", {
       method: "POST",
-      body: JSON.stringify({
-        name: textOrUndefined(formData.get("name")),
-        query: textOrUndefined(formData.get("query")),
-        city: textOrUndefined(formData.get("city")),
-        minSalary: numberOrUndefined(formData.get("minSalary")),
-        skills: textOrUndefined(formData.get("skills"))?.split(",").map(skill => skill.trim()).filter(Boolean) || [],
-        frequency: textOrUndefined(formData.get("frequency")) || "daily",
-      }),
+      body: JSON.stringify(buildJobAlertPayload(formData)),
     });
     form.reset();
   }

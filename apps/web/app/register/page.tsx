@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import type { FormEvent } from "react";
 import { useState } from "react";
 import { api } from "../../lib/api";
+import { buildRegisterPayload } from "../../lib/form-payloads";
 
 export default function RegisterPage() {
   const [message, setMessage] = useState("");
@@ -25,16 +26,9 @@ export default function RegisterPage() {
     setIsSubmitting(true);
     setMessage("");
     try {
-      const phone = formData.get("phone")?.toString().trim();
       await api("/api/v1/auth/register", {
         method: "POST",
-        body: JSON.stringify({
-          name: formData.get("name")?.toString().trim(),
-          email: formData.get("email")?.toString().trim(),
-          ...(phone ? { phone } : {}),
-          password: formData.get("password"),
-          role: formData.get("role"),
-        }),
+        body: JSON.stringify(buildRegisterPayload(formData)),
       });
       setMessage("Account created. Check email for verification code.");
       form.reset();

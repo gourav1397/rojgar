@@ -4,6 +4,7 @@ import type { FormEvent } from "react";
 import { useState } from "react";
 import { DashboardShell } from "../../../../components/dashboard-shell";
 import { api } from "../../../../lib/api";
+import { buildCandidateSearchParams } from "../../../../lib/form-payloads";
 
 type Candidate = {
   id: string;
@@ -23,11 +24,7 @@ export default function EmployerCandidatesPage() {
   async function search(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
-    const params = new URLSearchParams();
-    for (const key of ["q", "city"]) {
-      const value = formData.get(key)?.toString().trim();
-      if (value) params.set(key, value);
-    }
+    const params = buildCandidateSearchParams(formData);
     try {
       const data = await api<{ candidates: Candidate[] }>(`/api/v1/employer/candidate-search?${params}`);
       setCandidates(data.candidates);

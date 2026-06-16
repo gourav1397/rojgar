@@ -4,6 +4,7 @@ import type { FormEvent } from "react";
 import { useEffect, useState } from "react";
 import { DashboardShell } from "../../../../../components/dashboard-shell";
 import { api } from "../../../../../lib/api";
+import { buildEmployerJobPayload } from "../../../../../lib/form-payloads";
 
 type EmployerDashboard = {
   employer: {
@@ -45,35 +46,13 @@ export default function NewJobPage() {
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
-    const minSalary = formData.get("minSalary")?.toString().trim();
-    const maxSalary = formData.get("maxSalary")?.toString().trim();
-    const minExperience = formData.get("minExperience")?.toString().trim();
-    const maxExperience = formData.get("maxExperience")?.toString().trim();
-    const skills = formData
-      .get("skills")
-      ?.toString()
-      .split(",")
-      .map(skill => skill.trim())
-      .filter(Boolean);
 
     setIsSubmitting(true);
     setMessage("");
     try {
       await api("/api/v1/jobs", {
         method: "POST",
-        body: JSON.stringify({
-          companyId,
-          title: formData.get("title")?.toString().trim(),
-          description: formData.get("description")?.toString().trim(),
-          city: formData.get("city")?.toString().trim(),
-          category: formData.get("category")?.toString().trim(),
-          employmentType: formData.get("employmentType")?.toString().trim(),
-          ...(minSalary ? { minSalary } : {}),
-          ...(maxSalary ? { maxSalary } : {}),
-          ...(minExperience ? { minExperience } : {}),
-          ...(maxExperience ? { maxExperience } : {}),
-          skills: skills || [],
-        }),
+        body: JSON.stringify(buildEmployerJobPayload(companyId, formData)),
       });
       setMessage("Job sent for approval.");
     } catch (error) {

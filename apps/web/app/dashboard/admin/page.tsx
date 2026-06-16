@@ -4,6 +4,7 @@ import type { FormEvent } from "react";
 import { useEffect, useState } from "react";
 import { DashboardGrid, DashboardShell } from "../../../components/dashboard-shell";
 import { api } from "../../../lib/api";
+import { buildCmsPayload, buildReportPayload } from "../../../lib/form-payloads";
 
 type Metrics = {
   users: number;
@@ -116,14 +117,7 @@ export default function AdminDashboardPage() {
     try {
       await api("/api/v1/admin/cms", {
         method: "POST",
-        body: JSON.stringify({
-          slug: formData.get("slug")?.toString().trim(),
-          title: formData.get("title")?.toString().trim(),
-          body: formData.get("body")?.toString().trim(),
-          metaTitle: formData.get("metaTitle")?.toString().trim() || undefined,
-          metaDescription: formData.get("metaDescription")?.toString().trim() || undefined,
-          publishedAt: formData.get("published") === "on" ? new Date().toISOString() : undefined,
-        }),
+        body: JSON.stringify(buildCmsPayload(formData)),
       });
       form.reset();
       setMessage("CMS page saved.");
@@ -139,11 +133,7 @@ export default function AdminDashboardPage() {
     try {
       await api("/api/v1/admin/reports", {
         method: "POST",
-        body: JSON.stringify({
-          type: formData.get("type")?.toString().trim(),
-          entityId: formData.get("entityId")?.toString().trim() || undefined,
-          reason: formData.get("reason")?.toString().trim(),
-        }),
+        body: JSON.stringify(buildReportPayload(formData)),
       });
       form.reset();
       setMessage("Report created.");

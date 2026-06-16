@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import type { FormEvent } from "react";
 import { useState } from "react";
 import { api } from "../../lib/api";
+import { buildLoginPayload, dashboardPath } from "../../lib/form-payloads";
 
 export default function LoginPage() {
   const [message, setMessage] = useState("");
@@ -18,12 +19,6 @@ export default function LoginPage() {
         ? "Google login failed. Please try again."
         : "";
 
-  function dashboardPath(role: "ADMIN" | "EMPLOYER" | "CANDIDATE") {
-    if (role === "ADMIN") return "/dashboard/admin";
-    if (role === "EMPLOYER") return "/dashboard/employer";
-    return "/dashboard/candidate";
-  }
-
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
@@ -32,7 +27,7 @@ export default function LoginPage() {
     try {
       const data = await api<{ user: { role: "ADMIN" | "EMPLOYER" | "CANDIDATE" } }>("/api/v1/auth/login", {
         method: "POST",
-        body: JSON.stringify({ email: formData.get("email"), password: formData.get("password") }),
+        body: JSON.stringify(buildLoginPayload(formData)),
       });
       window.location.href = dashboardPath(data.user.role);
     } catch (error) {

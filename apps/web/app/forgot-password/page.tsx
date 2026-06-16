@@ -3,6 +3,7 @@
 import type { FormEvent } from "react";
 import { useState } from "react";
 import { api } from "../../lib/api";
+import { buildForgotPasswordPayload } from "../../lib/form-payloads";
 
 export default function ForgotPasswordPage() {
   const [message, setMessage] = useState("");
@@ -14,7 +15,7 @@ export default function ForgotPasswordPage() {
     setIsSubmitting(true);
     setMessage("");
     try {
-      await api("/api/v1/auth/forgot-password", { method: "POST", body: JSON.stringify({ email: formData.get("email") }) });
+      await api("/api/v1/auth/forgot-password", { method: "POST", body: JSON.stringify(buildForgotPasswordPayload(formData)) });
       setMessage("If the email exists, reset instructions were sent.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Request failed");
