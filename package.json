@@ -1,0 +1,35 @@
+{
+  "name": "rogjar-marketplace",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Production-ready Rogjar job marketplace for candidates, employers, and admins.",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"pnpm --filter @rogjar/api dev\" \"pnpm --filter @rogjar/web dev\"",
+    "build": "pnpm -r --if-present build",
+    "lint": "pnpm -r --if-present lint",
+    "test": "pnpm -r --if-present test",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "format": "prettier --write .",
+    "db:generate": "prisma generate --schema packages/database/prisma/schema.prisma",
+    "db:migrate": "prisma migrate dev --schema packages/database/prisma/schema.prisma",
+    "db:deploy": "prisma migrate deploy --schema packages/database/prisma/schema.prisma",
+    "db:studio": "prisma studio --schema packages/database/prisma/schema.prisma",
+    "docker:up": "docker compose up --build",
+    "docker:down": "docker compose down -v"
+  },
+  "devDependencies": {
+    "@prisma/client": "6.19.3",
+    "@types/node": "^22.10.2",
+    "concurrently": "^9.1.0",
+    "prettier": "^3.4.2",
+    "prisma": "^6.1.0",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=20.18.0"
+  }
+}

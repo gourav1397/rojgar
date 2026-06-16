@@ -1,0 +1,11 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+allowBuilds:
+  '@prisma/client': true
+  '@prisma/engines': true
+  esbuild: true
+  prisma: true
+  sharp: true
+ignoreWorkspaceRootCheck: true
+storeDir: C:\Users\Gourav\Documents\Codex\2026-06-16\start-a-new-project-rogjar-a\work\pnpm-home\store\v11

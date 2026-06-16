@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rogjar | Jobs and Hiring Portal</title>
+    <meta
+      name="description"
+      content="Rogjar connects job seekers with verified local jobs and helps employers hire faster."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="Rogjar home">
+        <span class="brand-mark">R</span>
+        <span>Rogjar</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#jobs">Jobs</a>
+        <a href="#employers">Employers</a>
+        <a href="#career">Career Prep</a>
+      </nav>
+      <div class="header-actions">
+        <button class="ghost-btn" data-open-panel="candidate">Candidate Login</button>
+        <button class="primary-btn" data-open-panel="employer">Post a Job</button>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="hero-section">
+        <div class="hero-copy">
+          <p class="eyebrow">India's local jobs and hiring network</p>
+          <h1>Find work. Hire faster. Grow with Rogjar.</h1>
+          <p class="hero-lede">
+            Search verified openings, speak directly with employers, and manage
+            hiring from one clear dashboard built for job seekers and providers.
+          </p>
+
+          <form class="search-panel" id="jobSearch">
+            <label>
+              <span>Job title or skill</span>
+              <input id="roleInput" type="search" placeholder="Sales, delivery, accountant" />
+            </label>
+            <label>
+              <span>City</span>
+              <input id="cityInput" type="search" placeholder="Delhi, Jaipur, Mumbai" />
+            </label>
+            <label>
+              <span>Experience</span>
+              <select id="experienceInput">
+                <option value="">Any experience</option>
+                <option value="Fresher">Fresher</option>
+                <option value="1-3 years">1-3 years</option>
+                <option value="3+ years">3+ years</option>
+              </select>
+            </label>
+            <button class="primary-btn search-btn" type="submit">Search Jobs</button>
+          </form>
+
+          <div class="quick-tags" aria-label="Popular searches">
+            <button data-filter="Fresher">Freshers</button>
+            <button data-filter="Work from home">Work from home</button>
+            <button data-filter="Part time">Part time</button>
+            <button data-filter="Women">Jobs for women</button>
+          </div>
+        </div>
+
+        <aside class="hero-dashboard" aria-label="Rogjar activity dashboard">
+          <div class="metric-row">
+            <div>
+              <strong id="activeJobsMetric">0</strong>
+              <span>active jobs</span>
+            </div>
+            <div>
+              <strong id="providersMetric">0</strong>
+              <span>hiring partners</span>
+            </div>
+          </div>
+          <div class="live-card">
+            <span class="status-dot"></span>
+            <div>
+              <strong>Latest activity</strong>
+              <p id="latestActivity">Loading Rogjar activity...</p>
+            </div>
+          </div>
+          <div class="pipeline">
+            <div>
+              <span>Applied</span>
+              <b id="appliedMetric">0</b>
+            </div>
+            <div>
+              <span>Shortlisted</span>
+              <b id="shortlistedMetric">0</b>
+            </div>
+            <div>
+              <span>Joined</span>
+              <b id="joinedMetric">0</b>
+            </div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="trust-band" aria-label="Platform highlights">
+        <div><strong>Direct HR contact</strong><span>No middle layer</span></div>
+        <div><strong>Verified providers</strong><span>Reviewed listings</span></div>
+        <div><strong>Local-first search</strong><span>Jobs across 60+ cities</span></div>
+        <div><strong>Fast applications</strong><span>Apply in under a minute</span></div>
+      </section>
+
+      <section class="app-shell" id="jobs">
+        <aside class="sidebar">
+          <div class="panel-title">
+            <span>Filters</span>
+            <button id="clearFilters" type="button">Clear</button>
+          </div>
+          <fieldset>
+            <legend>Job type</legend>
+            <label><input type="checkbox" value="Full time" class="type-filter" /> Full time</label>
+            <label><input type="checkbox" value="Part time" class="type-filter" /> Part time</label>
+            <label><input type="checkbox" value="Work from home" class="type-filter" /> Work from home</label>
+          </fieldset>
+          <fieldset>
+            <legend>Salary</legend>
+            <input id="salaryRange" type="range" min="10000" max="80000" value="10000" step="5000" />
+            <p>Minimum: <strong id="salaryValue">Rs 10,000</strong></p>
+          </fieldset>
+          <fieldset>
+            <legend>Top categories</legend>
+            <button class="category-chip" data-category="Delivery">Delivery</button>
+            <button class="category-chip" data-category="Sales">Sales</button>
+            <button class="category-chip" data-category="Back Office">Back Office</button>
+            <button class="category-chip" data-category="Customer Support">Customer Support</button>
+          </fieldset>
+        </aside>
+
+        <section class="job-results">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Open roles</p>
+              <h2>Recommended jobs for you</h2>
+            </div>
+            <span id="resultCount">0 jobs</span>
+          </div>
+          <p class="status-line" id="jobStatus">Loading jobs from Rogjar database...</p>
+          <div class="job-list" id="jobList"></div>
+        </section>
+
+        <aside class="profile-panel">
+          <div class="tabs" role="tablist" aria-label="Portal views">
+            <button class="tab-btn active" data-tab="seeker" type="button">Seeker</button>
+            <button class="tab-btn" data-tab="provider" type="button">Provider</button>
+          </div>
+
+          <div class="tab-panel active" id="seeker">
+            <h3>Candidate snapshot</h3>
+            <p>Complete your profile to get stronger matches and faster callbacks.</p>
+            <div class="progress-wrap">
+              <span>Profile strength</span>
+              <strong>72%</strong>
+              <div class="progress-bar"><span></span></div>
+            </div>
+            <button class="primary-btn wide-btn" data-open-panel="candidate">Build Profile</button>
+          </div>
+
+          <div class="tab-panel" id="provider">
+            <h3>Hiring workspace</h3>
+            <p>Post jobs, screen applicants, and track interviews from one place.</p>
+            <div class="mini-stats">
+              <span><b>23</b> new applicants</span>
+              <span><b>7</b> interviews today</span>
+            </div>
+            <button class="primary-btn wide-btn" data-open-panel="employer">Create Job</button>
+          </div>
+        </aside>
+      </section>
+
+      <section class="two-column" id="employers">
+        <div>
+          <p class="eyebrow">For job providers</p>
+          <h2>Hire local talent without slowing your team down.</h2>
+          <p>
+            Rogjar helps providers publish openings, reach city-specific talent,
+            shortlist applicants, and coordinate interviews with simple status tracking.
+          </p>
+          <div class="feature-grid">
+            <article><strong>Smart matching</strong><span>Rank applicants by role, city, salary, and experience.</span></article>
+            <article><strong>Bulk outreach</strong><span>Contact shortlisted candidates with one action.</span></article>
+            <article><strong>Hiring pipeline</strong><span>Track new, contacted, interviewed, and joined stages.</span></article>
+            <article><strong>Trust signals</strong><span>Show verified company badges and response time.</span></article>
+          </div>
+        </div>
+        <form class="post-form" id="postJobForm">
+          <h3>Post a sample job</h3>
+          <input id="postTitle" required placeholder="Job title" />
+          <input id="postCompany" required placeholder="Company name" />
+          <input id="postCity" required placeholder="City" />
+          <input id="postSalary" required type="number" min="5000" placeholder="Monthly salary" />
+          <select id="postExperience">
+            <option>Fresher</option>
+            <option>1-3 years</option>
+            <option>3+ years</option>
+          </select>
+          <select id="postType">
+            <option>Full time</option>
+            <option>Part time</option>
+            <option>Work from home</option>
+          </select>
+          <select id="postCategory">
+            <option>Sales</option>
+            <option>Delivery</option>
+            <option>Back Office</option>
+            <option>Customer Support</option>
+          </select>
+          <button class="primary-btn" type="submit">Add to Jobs</button>
+          <p class="status-line" id="postStatus"></p>
+        </form>
+      </section>
+
+      <section class="career-section" id="career">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Career prep</p>
+            <h2>Get ready before the call comes.</h2>
+          </div>
+        </div>
+        <div class="prep-grid">
+          <article>
+            <span>01</span>
+            <h3>Resume builder</h3>
+            <p>Create a simple profile employers can scan quickly.</p>
+          </article>
+          <article>
+            <span>02</span>
+            <h3>Interview practice</h3>
+            <p>Prepare answers for common sales, support, and operations roles.</p>
+          </article>
+          <article>
+            <span>03</span>
+            <h3>Job alerts</h3>
+            <p>Save searches and receive fresh openings by city and category.</p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <dialog id="actionDialog">
+      <form method="dialog">
+        <button class="close-btn" value="close" aria-label="Close">x</button>
+        <h2 id="dialogTitle">Get started</h2>
+        <p id="dialogText"></p>
+        <input id="dialogName" required placeholder="Full name or company" />
+        <input id="dialogMobile" required placeholder="Mobile number" />
+        <button class="primary-btn wide-btn" value="submit">Continue</button>
+      </form>
+    </dialog>
+
+    <footer>
+      <strong>Rogjar</strong>
+      <span>Jobs for seekers. Hiring tools for providers.</span>
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+</html>

@@ -1,0 +1,486 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  EMPLOYER
+  CANDIDATE
+}
+
+enum UserStatus {
+  ACTIVE
+  PENDING_EMAIL
+  SUSPENDED
+  DELETED
+}
+
+enum CompanyStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+  FLAGGED
+}
+
+enum JobStatus {
+  DRAFT
+  PENDING_APPROVAL
+  ACTIVE
+  PAUSED
+  REJECTED
+  CLOSED
+}
+
+enum ApplicationStatus {
+  APPLIED
+  SCREENING
+  SHORTLISTED
+  INTERVIEW_SCHEDULED
+  OFFERED
+  HIRED
+  REJECTED
+  WITHDRAWN
+}
+
+enum InterviewMode {
+  PHONE
+  VIDEO
+  IN_PERSON
+}
+
+enum NotificationChannel {
+  EMAIL
+  SMS
+  PUSH
+  IN_APP
+}
+
+enum PaymentStatus {
+  CREATED
+  AUTHORIZED
+  CAPTURED
+  FAILED
+  REFUNDED
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAUSED
+  CANCELLED
+  EXPIRED
+}
+
+model User {
+  id                    String                 @id @default(cuid())
+  email                 String                 @unique
+  phone                 String?                @unique
+  passwordHash          String?
+  name                  String
+  role                  UserRole
+  status                UserStatus             @default(PENDING_EMAIL)
+  emailVerifiedAt       DateTime?
+  lastLoginAt           DateTime?
+  googleId              String?                @unique
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  candidateProfile      CandidateProfile?
+  employerProfile       EmployerProfile?
+  sessions              Session[]
+  passwordResetTokens   PasswordResetToken[]
+  emailVerificationCode EmailVerificationCode[]
+  auditLogs             AuditLog[]
+  notifications         Notification[]
+  chatMessages          ChatMessage[]
+
+  @@index([role, status])
+  @@index([createdAt])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  userId       String
+  refreshToken String   @unique
+  userAgent    String?
+  ipAddress    String?
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+}
+
+model EmailVerificationCode {
+  id        String   @id @default(cuid())
+  userId    String
+  codeHash  String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+}
+
+model CandidateProfile {
+  id             String                @id @default(cuid())
+  userId         String                @unique
+  headline       String?
+  currentCity    String?
+  preferredCity  String?
+  totalExperience Int                  @default(0)
+  expectedSalary Int?
+  currentSalary  Int?
+  profileScore   Int                   @default(30)
+  openToRemote   Boolean               @default(false)
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+  user           User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resumes        Resume[]
+  skills         CandidateSkill[]
+  education      Education[]
+  experiences    WorkExperience[]
+  savedJobs      SavedJob[]
+  applications   Application[]
+  jobAlerts      JobAlert[]
+
+  @@index([currentCity])
+  @@index([totalExperience])
+}
+
+model Resume {
+  id          String           @id @default(cuid())
+  candidateId String
+  title       String
+  fileUrl     String?
+  cloudinaryPublicId String?
+  builderJson Json?
+  isPrimary   Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  applications Application[]
+
+  @@index([candidateId, isPrimary])
+}
+
+model Skill {
+  id         String           @id @default(cuid())
+  name       String           @unique
+  candidates CandidateSkill[]
+  jobs       JobSkill[]
+}
+
+model CandidateSkill {
+  candidateId String
+  skillId     String
+  level       Int      @default(1)
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  skill       Skill            @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([candidateId, skillId])
+  @@index([skillId])
+}
+
+model Education {
+  id          String           @id @default(cuid())
+  candidateId String
+  degree      String
+  institute   String
+  startYear   Int?
+  endYear     Int?
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@index([candidateId])
+}
+
+model WorkExperience {
+  id          String           @id @default(cuid())
+  candidateId String
+  title       String
+  company     String
+  startDate   DateTime?
+  endDate     DateTime?
+  description String?
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@index([candidateId])
+}
+
+model EmployerProfile {
+  id        String    @id @default(cuid())
+  userId    String    @unique
+  companyId String
+  title     String?
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company   Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+}
+
+model Company {
+  id                  String             @id @default(cuid())
+  name                String
+  slug                String             @unique
+  website             String?
+  logoUrl             String?
+  cloudinaryPublicId  String?
+  description         String?
+  city                String?
+  industry            String?
+  employeeCount       String?
+  status              CompanyStatus      @default(PENDING)
+  verificationNotes   String?
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  employers           EmployerProfile[]
+  jobs                Job[]
+
+  @@index([status])
+  @@index([city])
+  @@index([industry])
+}
+
+model Job {
+  id              String          @id @default(cuid())
+  companyId       String
+  title           String
+  slug            String          @unique
+  description     String
+  responsibilities String?
+  requirements    String?
+  city            String
+  location        String?
+  minSalary       Int?
+  maxSalary       Int?
+  minExperience   Int             @default(0)
+  maxExperience   Int?
+  employmentType  String
+  category        String
+  status          JobStatus       @default(PENDING_APPROVAL)
+  isFeatured      Boolean         @default(false)
+  premiumUntil    DateTime?
+  publishedAt     DateTime?
+  expiresAt       DateTime?
+  searchVector    String?
+  aiMatchMeta     Json?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  company         Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  skills          JobSkill[]
+  savedBy         SavedJob[]
+  applications    Application[]
+  interviews      Interview[]
+  payments        Payment[]
+
+  @@index([status, publishedAt])
+  @@index([city, category])
+  @@index([minSalary, maxSalary])
+  @@index([minExperience, maxExperience])
+  @@index([isFeatured, premiumUntil])
+}
+
+model JobSkill {
+  jobId   String
+  skillId String
+  job     Job   @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  skill   Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([jobId, skillId])
+  @@index([skillId])
+}
+
+model SavedJob {
+  candidateId String
+  jobId       String
+  savedAt     DateTime         @default(now())
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  job         Job              @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@id([candidateId, jobId])
+  @@index([savedAt])
+}
+
+model Application {
+  id          String            @id @default(cuid())
+  candidateId String
+  jobId       String
+  resumeId    String?
+  coverLetter String?
+  status      ApplicationStatus @default(APPLIED)
+  matchScore  Float?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  candidate   CandidateProfile  @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  job         Job               @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  resume      Resume?           @relation(fields: [resumeId], references: [id])
+  interviews  Interview[]
+
+  @@unique([candidateId, jobId])
+  @@index([jobId, status])
+  @@index([candidateId, createdAt])
+}
+
+model Interview {
+  id            String        @id @default(cuid())
+  applicationId String
+  jobId          String
+  scheduledAt    DateTime
+  mode           InterviewMode
+  meetingUrl     String?
+  notes          String?
+  createdAt      DateTime      @default(now())
+  application    Application   @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  job            Job           @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@index([jobId, scheduledAt])
+  @@index([applicationId])
+}
+
+model JobAlert {
+  id          String           @id @default(cuid())
+  candidateId String
+  name        String
+  query       String?
+  city        String?
+  minSalary   Int?
+  skills      String[]
+  frequency   String           @default("daily")
+  isActive    Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@index([candidateId, isActive])
+}
+
+model ChatThread {
+  id          String        @id @default(cuid())
+  jobId       String?
+  applicationId String?
+  createdAt   DateTime      @default(now())
+  messages    ChatMessage[]
+
+  @@index([jobId])
+  @@index([applicationId])
+}
+
+model ChatMessage {
+  id        String     @id @default(cuid())
+  threadId  String
+  senderId  String
+  body      String
+  readAt    DateTime?
+  createdAt DateTime   @default(now())
+  thread    ChatThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  sender    User       @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([threadId, createdAt])
+}
+
+model Notification {
+  id        String              @id @default(cuid())
+  userId    String
+  channel   NotificationChannel
+  subject   String
+  body      String
+  sentAt    DateTime?
+  readAt    DateTime?
+  createdAt DateTime            @default(now())
+  user      User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt])
+  @@index([channel, sentAt])
+}
+
+model Plan {
+  id              String         @id @default(cuid())
+  name            String
+  pricePaise      Int
+  durationDays    Int
+  featuredJobLimit Int           @default(0)
+  premiumListingLimit Int        @default(0)
+  subscriptions   Subscription[]
+}
+
+model Subscription {
+  id          String             @id @default(cuid())
+  companyId   String
+  planId      String
+  status      SubscriptionStatus @default(ACTIVE)
+  startsAt    DateTime           @default(now())
+  endsAt      DateTime
+  plan        Plan               @relation(fields: [planId], references: [id])
+
+  @@index([companyId, status])
+  @@index([endsAt])
+}
+
+model Payment {
+  id              String        @id @default(cuid())
+  jobId           String?
+  razorpayOrderId String        @unique
+  razorpayPaymentId String?
+  amountPaise     Int
+  status          PaymentStatus @default(CREATED)
+  purpose         String
+  createdAt       DateTime      @default(now())
+  job             Job?          @relation(fields: [jobId], references: [id])
+
+  @@index([status, createdAt])
+}
+
+model CmsPage {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  body        String
+  metaTitle   String?
+  metaDescription String?
+  publishedAt DateTime?
+  updatedAt   DateTime @updatedAt
+}
+
+model Report {
+  id        String   @id @default(cuid())
+  type      String
+  entityId  String?
+  reason    String
+  status    String   @default("open")
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([type, status])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String?
+  action    String
+  entity    String
+  entityId  String?
+  metadata  Json?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  actor     User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([actorId, createdAt])
+  @@index([entity, entityId])
+  @@index([action])
+}
