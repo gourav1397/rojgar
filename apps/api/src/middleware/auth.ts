@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
-import type { UserRole } from "@prisma/client";
+import type { UserRole } from "@rogjar/database";
 import { verifyAccessToken } from "../utils/tokens";
 
 export function authenticate(request: Request, response: Response, next: NextFunction) {

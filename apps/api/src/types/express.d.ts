@@ -1,4 +1,4 @@
-import type { UserRole } from "@prisma/client";
+import type { UserRole } from "@rogjar/database";
 
 declare global {
   namespace Express {

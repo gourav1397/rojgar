@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { FormEvent } from "react";
 import { useState } from "react";
 import { api } from "../../lib/api";
@@ -10,6 +10,7 @@ import { buildRegisterPayload } from "../../lib/form-payloads";
 export default function RegisterPage() {
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const router = useRouter();
   const searchParams = useSearchParams();
   const oauthError = searchParams.get("error");
   const oauthMessage =
@@ -26,11 +27,13 @@ export default function RegisterPage() {
     setIsSubmitting(true);
     setMessage("");
     try {
-      await api("/api/v1/auth/register", {
+      const data = await api<{ devVerificationCode?: string }>("/api/v1/auth/register", {
         method: "POST",
         body: JSON.stringify(buildRegisterPayload(formData)),
       });
-      setMessage("Account created. Check email for verification code.");
+      const email = formData.get("email")?.toString().trim() || "";
+      const devCode = data.devVerificationCode ? `&devCode=${encodeURIComponent(data.devVerificationCode)}` : "";
+      router.push(`/verify-email?email=${encodeURIComponent(email)}${devCode}`);
       form.reset();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Registration failed");

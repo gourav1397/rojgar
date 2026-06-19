@@ -3,10 +3,12 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import LoginPage from "./login/page";
 import RegisterPage from "./register/page";
+import VerifyEmailPage from "./verify-email/page";
 
 (globalThis as typeof globalThis & { React: typeof React }).React = React;
 
 vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: vi.fn() }),
   useSearchParams: () => new URLSearchParams("error=google-config"),
 }));
 
@@ -32,5 +34,14 @@ describe("auth pages", () => {
     expect(html).toContain("Candidate");
     expect(html).toContain("Employer");
     expect(html).toContain("Google account creation needs GOOGLE_CLIENT_ID");
+  });
+
+  it("renders email verification and resend controls", () => {
+    const html = renderToStaticMarkup(<VerifyEmailPage />);
+
+    expect(html).toContain("Verify your email");
+    expect(html).toContain("Verification code");
+    expect(html).toContain("Resend code");
+    expect(html).toContain("Back to login");
   });
 });

@@ -13,7 +13,7 @@ import { env } from "../config/env";
 import { audit } from "../middleware/audit";
 import { authenticate } from "../middleware/auth";
 import { validateBody } from "../middleware/validate";
-import { sendEmail } from "../services/email.service";
+import { isEmailDeliveryConfigured, sendEmail } from "../services/email.service";
 import { asyncHandler } from "../utils/async-handler";
 import { hashToken, randomToken, signAccessToken, signRefreshToken } from "../utils/tokens";
 
@@ -49,6 +49,10 @@ function dashboardPath(role: UserRole) {
 
 function googleErrorRedirect(request: import("express").Request) {
   return `${env.WEB_ORIGIN}${request.query.mode === "register" ? "/register" : "/login"}?error=google-config`;
+}
+
+function devVerificationPayload(code: string) {
+  return env.NODE_ENV === "production" || isEmailDeliveryConfigured() ? {} : { devVerificationCode: code };
 }
 
 authRouter.post(
@@ -90,7 +94,11 @@ authRouter.post(
       },
     });
     await sendEmail({ to: user.email, subject: "Verify your Rogjar email", html: `<p>Your code is <b>${code}</b></p>` });
-    response.status(201).json({ user: { id: user.id, email: user.email, role: user.role }, message: "Verification email sent" });
+    response.status(201).json({
+      user: { id: user.id, email: user.email, role: user.role },
+      message: "Verification email sent",
+      ...devVerificationPayload(code),
+    });
   })
 );
 
@@ -102,6 +110,10 @@ authRouter.post(
     const user = await prisma.user.findUnique({ where: { email: request.body.email } });
     if (!user?.passwordHash || !(await bcrypt.compare(request.body.password, user.passwordHash))) {
       response.status(401).json({ error: "Invalid credentials" });
+      return;
+    }
+    if (user.status === UserStatus.PENDING_EMAIL) {
+      response.status(403).json({ error: "Please verify your email before logging in" });
       return;
     }
     const tokens = await issueTokens(user);
@@ -145,6 +157,32 @@ authRouter.post(
     response.clearCookie("accessToken");
     response.clearCookie("refreshToken");
     response.json({ ok: true });
+  })
+);
+
+authRouter.post(
+  "/resend-verification",
+  validateBody(forgotPasswordSchema),
+  asyncHandler(async (request, response) => {
+    const user = await prisma.user.findUnique({ where: { email: request.body.email } });
+    if (!user) {
+      response.json({ message: "If an account exists, a verification code was sent" });
+      return;
+    }
+    if (user.emailVerifiedAt) {
+      response.json({ message: "Email is already verified" });
+      return;
+    }
+    const code = randomToken(3).slice(0, 6).toUpperCase();
+    await prisma.emailVerificationCode.create({
+      data: {
+        userId: user.id,
+        codeHash: hashToken(code),
+        expiresAt: new Date(Date.now() + 15 * 60 * 1000),
+      },
+    });
+    await sendEmail({ to: user.email, subject: "Verify your Rogjar email", html: `<p>Your new code is <b>${code}</b></p>` });
+    response.json({ message: "Verification code sent", ...devVerificationPayload(code) });
   })
 );
 

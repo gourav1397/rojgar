@@ -35,6 +35,13 @@ export function buildForgotPasswordPayload(formData: FormData) {
   return { email: formData.get("email") };
 }
 
+export function buildVerifyEmailPayload(formData: FormData) {
+  return {
+    email: formData.get("email")?.toString().trim(),
+    code: formData.get("code")?.toString().trim().toUpperCase(),
+  };
+}
+
 export function buildCandidateProfilePayload(formData: FormData) {
   return {
     headline: textOrUndefined(formData.get("headline")),

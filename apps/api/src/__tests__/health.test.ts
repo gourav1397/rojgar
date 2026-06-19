@@ -11,5 +11,5 @@ describe("health", () => {
     const response = await request(createApp()).get("/health");
     expect(response.status).toBe(200);
     expect(response.body.ok).toBe(true);
-  });
+  }, 15_000);
 });

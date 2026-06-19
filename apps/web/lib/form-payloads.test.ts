@@ -12,6 +12,7 @@ import {
   buildLoginPayload,
   buildRegisterPayload,
   buildReportPayload,
+  buildVerifyEmailPayload,
   dashboardPath,
 } from "./form-payloads";
 
@@ -63,6 +64,13 @@ describe("login and signup form payloads", () => {
 
   it("builds forgot password payloads", () => {
     expect(buildForgotPasswordPayload(form({ email: "user@rogjar.in" }))).toEqual({ email: "user@rogjar.in" });
+  });
+
+  it("builds verify email payloads", () => {
+    expect(buildVerifyEmailPayload(form({ email: " user@rogjar.in ", code: " ab12cd " }))).toEqual({
+      email: "user@rogjar.in",
+      code: "AB12CD",
+    });
   });
 });
 

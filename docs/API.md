@@ -10,6 +10,7 @@ Base path: `/api/v1`
 - `POST /auth/forgot-password`
 - `POST /auth/reset-password`
 - `POST /auth/verify-email`
+- `POST /auth/resend-verification`
 - `GET /auth/google`
 - `GET /auth/google?mode=register`
 - `GET /auth/google/callback`

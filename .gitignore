@@ -13,4 +13,5 @@ outputs/
 data/
 apps/**/.next/
 apps/**/dist/
+packages/database/src/generated/
 *.tsbuildinfo
